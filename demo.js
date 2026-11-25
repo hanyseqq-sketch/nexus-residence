@@ -217,15 +217,15 @@
     function skyTexture() {
       return tex(768, 512, function (g, w, h) {
         var sky = g.createLinearGradient(0, 0, 0, h * 0.62);
-        sky.addColorStop(0, '#0e2047');
-        sky.addColorStop(0.42, '#3a5b93');
-        sky.addColorStop(0.76, '#c47f68');
-        sky.addColorStop(1, '#f0ac79');
+        sky.addColorStop(0, '#1d3f74');
+        sky.addColorStop(0.4, '#5d84bd');
+        sky.addColorStop(0.72, '#d99a7e');
+        sky.addColorStop(1, '#ffc99b');
         g.fillStyle = sky; g.fillRect(0, 0, w, h * 0.62);
 
-        var glow = g.createRadialGradient(w * 0.66, h * 0.57, 4, w * 0.66, h * 0.57, h * 0.44);
-        glow.addColorStop(0, 'rgba(255,226,186,.9)');
-        glow.addColorStop(1, 'rgba(255,226,186,0)');
+        var glow = g.createRadialGradient(w * 0.66, h * 0.57, 4, w * 0.66, h * 0.57, h * 0.5);
+        glow.addColorStop(0, 'rgba(255,236,205,.95)');
+        glow.addColorStop(1, 'rgba(255,236,205,0)');
         g.fillStyle = glow; g.fillRect(0, 0, w, h * 0.62);
 
         var bx = 0;
@@ -264,8 +264,8 @@
       floor: std({ map: woodTexture(4, 4), bumpMap: bumpWood(4, 4), bumpScale: 0.012, roughness: 0.66, metalness: 0 }),
       wood: std({ map: woodTexture(1, 1), bumpMap: bumpWood(1, 1), bumpScale: 0.006, roughness: 0.6 }),
       woodDark: std({ color: 0x4d3524, roughness: 0.55 }),
-      wall: std({ color: 0xe7dfd1, roughness: 0.97 }),
-      wall2: std({ color: 0xdcd2c2, roughness: 0.97 }),
+      wall: std({ color: 0xe1d8c8, roughness: 0.97 }),
+      wall2: std({ color: 0xd7cdbb, roughness: 0.97 }),
       cream: std({ color: 0xe3d7c4, roughness: 0.85 }),
       white: std({ color: 0xf3eee4, roughness: 0.5 }),
       marble: std({ map: marbleTexture(2, 2), bumpMap: bumpMarble(2, 2), bumpScale: 0.008, roughness: 0.32, metalness: 0.05 }),
@@ -317,6 +317,9 @@
     box(W * 2, 0.26, W * 2, M.floor, 0, -0.13, 0, { cast: false });
     box(W * 2, H, 0.2, M.wall, 0, H / 2, -W, { cast: false });
     box(0.2, H, W * 2, M.wall2, -W, H / 2, 0, { cast: false });
+    // tmavá hrana řezu
+    box(W * 2 + 0.04, 0.05, 0.26, M.woodDark, 0, H + 0.02, -W, { cast: false });
+    box(0.26, 0.05, W * 2 + 0.04, M.woodDark, -W, H + 0.02, 0, { cast: false });
 
     // sokl
     box(W * 2, 0.1, 0.06, M.white, 0, 0.05, -W + 0.13, { cast: false });
@@ -341,8 +344,7 @@
 
     /* ---------------- koupelna (vzadu vlevo) ---------------- */
     box(2.05, 0.04, 2.0, M.marble, -3.37, 0.02, -3.4, { cast: false });
-    box(0.14, 1.1, 2.0, M.wall2, -2.34, 0.55, -3.4);
-    box(0.05, 1.3, 1.5, M.glass, -2.34, 1.75, -3.6, { cast: false, recv: false });
+    box(0.14, 1.0, 2.0, M.wall2, -2.34, 0.5, -3.4);
 
     box(1.75, 0.5, 0.82, M.white, -3.45, 0.27, -4.02);
     box(1.55, 0.1, 0.62, std({ color: 0xcfe0ea, roughness: 0.18, metalness: 0.15 }), -3.45, 0.48, -4.02, { cast: false });
@@ -425,6 +427,29 @@
     box(0.03, 0.8, 1.5, std({ color: 0x0b0d10, roughness: 0.15, metalness: 0.5 }), -W + 0.1, 1.62, 0.95, { cast: false, recv: false });
     box(0.34, 0.34, 1.9, M.woodDark, -W + 0.3, 0.17, 0.95);
 
+    /* ---------------- jídelna ---------------- */
+    cyl(0.72, 0.72, 0.06, M.wood, 0.2, 0.74, -0.9, 36);
+    cyl(0.09, 0.13, 0.72, M.woodDark, 0.2, 0.36, -0.9);
+    cyl(0.22, 0.26, 0.02, M.woodDark, 0.2, 0.02, -0.9);
+    cyl(0.018, 0.018, 0.95, M.metal, 0.2, 2.42, -0.9);
+    cyl(0.15, 0.19, 0.18, M.emitWarm, 0.2, 1.9, -0.9);
+
+    function chair(x, z) {
+      var dx = x - 0.2, dz = z + 0.9, L = Math.hypot(dx, dz) || 1;
+      dx /= L; dz /= L;
+      var ry = Math.atan2(dx, dz);
+      box(0.44, 0.06, 0.44, M.fabric2, x, 0.44, z, { ry: ry });
+      box(0.44, 0.4, 0.06, M.fabric2, x + dx * 0.19, 0.65, z + dz * 0.19, { ry: ry });
+      box(0.05, 0.42, 0.05, M.woodDark, x - 0.15, 0.21, z - 0.15);
+      box(0.05, 0.42, 0.05, M.woodDark, x + 0.15, 0.21, z + 0.15);
+      box(0.05, 0.42, 0.05, M.woodDark, x - 0.15, 0.21, z + 0.15);
+      box(0.05, 0.42, 0.05, M.woodDark, x + 0.15, 0.21, z - 0.15);
+    }
+    chair(1.3, -0.9);
+    chair(-0.9, -0.9);
+    chair(0.2, 0.22);
+    chair(0.2, -2.02);
+
     /* ---------------- ložnice ---------------- */
     box(2.6, 0.32, 2.15, M.woodDark, -3.05, 0.16, 2.35);
     box(2.5, 0.3, 2.05, M.white, -3.05, 0.46, 2.35);
@@ -434,6 +459,9 @@
     box(1.3, 0.1, 2.05, M.olive, -2.5, 0.65, 2.35);
     box(0.42, 0.42, 0.42, M.wood, -1.62, 0.21, 1.15);
     cyl(0.09, 0.12, 0.24, M.emitWarm, -1.62, 0.55, 1.15);
+    // kobereček a lavice u postele
+    box(0.95, 0.03, 2.5, M.rug, -1.45, 0.016, 2.35, { cast: false });
+    box(0.36, 0.4, 1.5, M.fabric2, -1.6, 0.2, 2.35);
 
     /* ---------------- detaily a kontaktní stíny ---------------- */
     var aoTex = aoTexture();
@@ -488,7 +516,7 @@
 
     /* ---------------- pohledy ---------------- */
     var VIEWS = {
-      plan:   { theta: 0.72, phi: 0.52, r: 20,   t: [0, 0.5, 0] },
+      plan:   { theta: 0.62, phi: 0.78, r: 20,   t: [0, 0.55, 0] },
       living: { theta: 0.36, phi: 1.16, r: 9.6,  t: [0.5, 1.0, 1.5] },
       bed:    { theta: 0.92, phi: 1.14, r: 8.6,  t: [-3.0, 0.75, 2.3] },
       bath:   { theta: 0.66, phi: 1.06, r: 7.6,  t: [-3.2, 0.9, -3.3] }
