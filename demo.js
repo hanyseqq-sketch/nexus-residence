@@ -25,6 +25,20 @@
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
 
+    /* ---------------- HDRI prostředí (Poly Haven, CC0) ---------------- */
+    if (THREE.RGBELoader && THREE.PMREMGenerator) {
+      try {
+        var pmrem = new THREE.PMREMGenerator(renderer);
+        pmrem.compileEquirectangularShader();
+        new THREE.RGBELoader().load('hdri/dusk.hdr', function (hdr) {
+          try {
+            scene.environment = pmrem.fromEquirectangular(hdr).texture;
+            hdr.dispose();
+          } catch (e) {}
+        }, undefined, function () {});
+      } catch (e) {}
+    }
+
     /* ---------------- světlo ---------------- */
     scene.add(new THREE.HemisphereLight(0xcfdff7, 0x241f1a, 0.42));
 
@@ -110,6 +124,72 @@
       }, rx, ry);
     }
 
+    function bumpWood(rx, ry) {
+      return tex(512, 512, function (g, w, h) {
+        g.fillStyle = '#8a8a8a'; g.fillRect(0, 0, w, h);
+        var rows = 8, ph = h / rows;
+        for (var r = 0; r < rows; r++) {
+          var offset = (r % 2) * 128;
+          for (var x = -256; x < w + 256; x += 256) {
+            var px = x + offset;
+            var pv = 118 + Math.floor(rnd(-16, 16));
+            g.fillStyle = 'rgba(' + pv + ',' + pv + ',' + pv + ',1)';
+            g.fillRect(px + 1, r * ph + 1, 254, ph - 2);
+            g.strokeStyle = 'rgba(40,40,40,.55)';
+            for (var i = 0; i < 12; i++) {
+              g.beginPath();
+              var yy = r * ph + rnd(3, ph - 3);
+              g.moveTo(px, yy);
+              g.bezierCurveTo(px + 80, yy + rnd(-4, 4), px + 170, yy + rnd(-4, 4), px + 254, yy + rnd(-3, 3));
+              g.stroke();
+            }
+          }
+          g.fillStyle = 'rgba(30,30,30,.85)';
+          g.fillRect(0, r * ph, w, 2);
+        }
+      }, rx, ry);
+    }
+
+    function bumpNoise(rx, ry) {
+      return tex(256, 256, function (g, w, h) {
+        g.fillStyle = '#808080'; g.fillRect(0, 0, w, h);
+        for (var i = 0; i < 9000; i++) {
+          var v = Math.floor(rnd(90, 170));
+          g.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',.5)';
+          g.fillRect(rnd(0, w), rnd(0, h), 1.8, 1.8);
+        }
+      }, rx, ry);
+    }
+
+    function bumpMarble(rx, ry) {
+      return tex(512, 512, function (g, w, h) {
+        g.fillStyle = '#8c8c8c'; g.fillRect(0, 0, w, h);
+        for (var i = 0; i < 30; i++) {
+          g.beginPath();
+          var x = rnd(0, w), y = rnd(0, h);
+          g.moveTo(x, y);
+          for (var k = 0; k < 4; k++) { x += rnd(-150, 150); y += rnd(-150, 150); g.lineTo(x, y); }
+          g.strokeStyle = 'rgba(60,60,60,' + rnd(0.2, 0.5).toFixed(2) + ')';
+          g.lineWidth = rnd(0.8, 2.4);
+          g.stroke();
+        }
+      }, rx, ry);
+    }
+
+    function aoTexture() {
+      var cv = document.createElement('canvas');
+      cv.width = cv.height = 128;
+      var g = cv.getContext('2d');
+      var grd = g.createRadialGradient(64, 64, 2, 64, 64, 64);
+      grd.addColorStop(0, 'rgba(0,0,0,.62)');
+      grd.addColorStop(0.5, 'rgba(0,0,0,.3)');
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+      var t = new THREE.CanvasTexture(cv);
+      t.encoding = THREE.sRGBEncoding;
+      return t;
+    }
+
     function fabricTexture(base, rx, ry) {
       return tex(256, 256, function (g, w, h) {
         g.fillStyle = base; g.fillRect(0, 0, w, h);
@@ -176,18 +256,21 @@
     }
 
     /* ---------------- materiály ---------------- */
-    function std(o) { return new THREE.MeshStandardMaterial(o); }
+    function std(o) {
+      if (o.envMapIntensity === undefined) o.envMapIntensity = 0.5;
+      return new THREE.MeshStandardMaterial(o);
+    }
     var M = {
-      floor: std({ map: woodTexture(4, 4), roughness: 0.66, metalness: 0 }),
-      wood: std({ map: woodTexture(1, 1), roughness: 0.6 }),
+      floor: std({ map: woodTexture(4, 4), bumpMap: bumpWood(4, 4), bumpScale: 0.012, roughness: 0.66, metalness: 0 }),
+      wood: std({ map: woodTexture(1, 1), bumpMap: bumpWood(1, 1), bumpScale: 0.006, roughness: 0.6 }),
       woodDark: std({ color: 0x4d3524, roughness: 0.55 }),
       wall: std({ color: 0xe7dfd1, roughness: 0.97 }),
       wall2: std({ color: 0xdcd2c2, roughness: 0.97 }),
       cream: std({ color: 0xe3d7c4, roughness: 0.85 }),
       white: std({ color: 0xf3eee4, roughness: 0.5 }),
-      marble: std({ map: marbleTexture(2, 2), roughness: 0.32, metalness: 0.05 }),
-      fabric: std({ map: fabricTexture('#d6c7b1', 2, 2), roughness: 1 }),
-      fabric2: std({ map: fabricTexture('#b8a891', 2, 2), roughness: 1 }),
+      marble: std({ map: marbleTexture(2, 2), bumpMap: bumpMarble(2, 2), bumpScale: 0.008, roughness: 0.32, metalness: 0.05 }),
+      fabric: std({ map: fabricTexture('#d6c7b1', 2, 2), bumpMap: bumpNoise(3, 3), bumpScale: 0.022, roughness: 1 }),
+      fabric2: std({ map: fabricTexture('#b8a891', 2, 2), bumpMap: bumpNoise(3, 3), bumpScale: 0.022, roughness: 1 }),
       rug: std({ map: rugTexture(), roughness: 1 }),
       dark: std({ color: 0x1d1f24, roughness: 0.3, metalness: 0.3 }),
       metal: std({ color: 0x8d939a, roughness: 0.3, metalness: 0.85 }),
@@ -351,6 +434,57 @@
     box(1.3, 0.1, 2.05, M.olive, -2.5, 0.65, 2.35);
     box(0.42, 0.42, 0.42, M.wood, -1.62, 0.21, 1.15);
     cyl(0.09, 0.12, 0.24, M.emitWarm, -1.62, 0.55, 1.15);
+
+    /* ---------------- detaily a kontaktní stíny ---------------- */
+    var aoTex = aoTexture();
+    function aoBlob(w, d, x, z, y, op) {
+      var m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({
+        map: aoTex, transparent: true, opacity: op || 0.5, depthWrite: false
+      }));
+      m.rotation.x = -Math.PI / 2;
+      m.position.set(x, y, z);
+      scene.add(m);
+    }
+    aoBlob(3.5, 1.6, 0.7, 2.75, 0.062, 0.5);
+    aoBlob(1.9, 1.2, 0.7, 1.0, 0.062, 0.4);
+    aoBlob(3.0, 2.6, -3.05, 2.35, 0.045, 0.45);
+    aoBlob(2.5, 1.4, 2.2, -1.95, 0.05, 0.45);
+    aoBlob(1.2, 1.2, -1.55, 0.15, 0.05, 0.35);
+    aoBlob(0.9, 0.9, 3.75, 3.5, 0.05, 0.35);
+
+    // sklo v okně
+    box(2.55, 2.3, 0.02, M.glass, -1.05, 1.45, -W + 0.17, { cast: false, recv: false });
+
+    // obývák: knížky, miska, ovoce, přehoz
+    box(0.32, 0.03, 0.24, std({ color: 0xe8e0d2, roughness: 0.9 }), 0.95, 0.5, 0.92, { ry: 0.18 });
+    box(0.3, 0.03, 0.22, std({ color: 0x8496a6, roughness: 0.9 }), 0.97, 0.53, 0.94, { ry: -0.12 });
+    cyl(0.11, 0.07, 0.06, std({ color: 0xf1ece2, roughness: 0.7 }), 0.3, 0.52, 1.12);
+    sph(0.045, std({ color: 0xc86b3f, roughness: 0.75 }), 0.3, 0.57, 1.12, 0);
+    sph(0.04, std({ color: 0xd8b25a, roughness: 0.75 }), 0.36, 0.56, 1.15, 0);
+    box(0.55, 0.06, 0.9, M.olive, 1.95, 0.62, 2.7, { ry: 0.06 });
+
+    // kuchyně: láhve, prkénko, konvice
+    cyl(0.045, 0.05, 0.3, M.glass, 1.95, 1.09, -W + 0.42);
+    cyl(0.04, 0.04, 0.24, M.glass, 2.05, 1.06, -W + 0.36);
+    box(0.4, 0.03, 0.28, M.wood, 2.85, 0.96, -W + 0.4, { ry: 0.08 });
+    cyl(0.1, 0.12, 0.18, M.metal, 3.55, 1.02, -W + 0.4);
+
+    // ostrůvek: miska s ovocem
+    cyl(0.2, 0.14, 0.09, std({ color: 0xf1ece2, roughness: 0.7 }), 2.0, 0.99, -1.8);
+    sph(0.06, std({ color: 0xc86b3f, roughness: 0.75 }), 1.96, 1.06, -1.8, 0);
+    sph(0.055, std({ color: 0x8a9a5b, roughness: 0.75 }), 2.05, 1.05, -1.85, 0);
+
+    // ložnice: knížka a sklenice
+    box(0.2, 0.03, 0.14, std({ color: 0x2f3540, roughness: 0.9 }), -1.62, 0.44, 1.3, { ry: -0.2 });
+    cyl(0.03, 0.03, 0.09, M.glass, -1.48, 0.47, 1.18);
+
+    // koupelna: lahvičky, ručníky, rostlinka
+    cyl(0.03, 0.03, 0.15, std({ color: 0xd9cfc0, roughness: 0.5 }), -3.95, 0.59, -4.18);
+    cyl(0.03, 0.03, 0.12, std({ color: 0xbfae97, roughness: 0.5 }), -3.86, 0.57, -4.14);
+    box(0.26, 0.1, 0.2, M.white, -4.1, 0.87, -2.6);
+    box(0.22, 0.08, 0.16, M.cream, -4.1, 0.95, -2.62);
+    cyl(0.05, 0.04, 0.08, M.terracotta, -3.5, 1.77, -4.3);
+    sph(0.07, M.green, -3.5, 1.85, -4.3, 0);
 
     /* ---------------- pohledy ---------------- */
     var VIEWS = {
