@@ -15,12 +15,13 @@
     /* ---------------- základ ---------------- */
     var canvas = document.getElementById('c');
     var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.85;
+    renderer.powerPreference = 'high-performance';
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
@@ -45,7 +46,7 @@
     var key = new THREE.DirectionalLight(0xfff0d6, 1.85);
     key.position.set(9, 15, 11);
     key.castShadow = true;
-    key.shadow.mapSize.set(2048, 2048);
+    key.shadow.mapSize.set(1024, 1024);
     key.shadow.camera.left = -13; key.shadow.camera.right = 13;
     key.shadow.camera.top = 13; key.shadow.camera.bottom = -13;
     key.shadow.camera.near = 1; key.shadow.camera.far = 60;
@@ -73,7 +74,7 @@
       var t = new THREE.CanvasTexture(cv);
       t.wrapS = t.wrapT = THREE.RepeatWrapping;
       t.repeat.set(rx || 1, ry || 1);
-      t.anisotropy = 4;
+      t.anisotropy = 2;
       t.encoding = THREE.sRGBEncoding;
       return t;
     }
@@ -257,20 +258,20 @@
 
     /* ---------------- materiály ---------------- */
     function std(o) {
-      if (o.envMapIntensity === undefined) o.envMapIntensity = 0.5;
+      if (o.envMapIntensity === undefined) o.envMapIntensity = 0.35;
       return new THREE.MeshStandardMaterial(o);
     }
     var M = {
-      floor: std({ map: woodTexture(4, 4), bumpMap: bumpWood(4, 4), bumpScale: 0.012, roughness: 0.66, metalness: 0 }),
-      wood: std({ map: woodTexture(1, 1), bumpMap: bumpWood(1, 1), bumpScale: 0.006, roughness: 0.6 }),
+      floor: std({ map: woodTexture(4, 4), bumpMap: bumpWood(4, 4), bumpScale: 0.003, roughness: 0.66, metalness: 0 }),
+      wood: std({ map: woodTexture(1, 1), bumpMap: bumpWood(1, 1), bumpScale: 0.003, roughness: 0.6 }),
       woodDark: std({ color: 0x4d3524, roughness: 0.55 }),
       wall: std({ color: 0xe1d8c8, roughness: 0.97 }),
       wall2: std({ color: 0xd7cdbb, roughness: 0.97 }),
       cream: std({ color: 0xe3d7c4, roughness: 0.85 }),
       white: std({ color: 0xf3eee4, roughness: 0.5 }),
-      marble: std({ map: marbleTexture(2, 2), bumpMap: bumpMarble(2, 2), bumpScale: 0.008, roughness: 0.32, metalness: 0.05 }),
-      fabric: std({ map: fabricTexture('#d6c7b1', 2, 2), bumpMap: bumpNoise(3, 3), bumpScale: 0.022, roughness: 1 }),
-      fabric2: std({ map: fabricTexture('#b8a891', 2, 2), bumpMap: bumpNoise(3, 3), bumpScale: 0.022, roughness: 1 }),
+      marble: std({ map: marbleTexture(2, 2), bumpMap: bumpMarble(2, 2), bumpScale: 0.004, roughness: 0.32, metalness: 0.05 }),
+      fabric: std({ map: fabricTexture('#d6c7b1', 2, 2), bumpMap: bumpNoise(3, 3), bumpScale: 0.011, roughness: 1 }),
+      fabric2: std({ map: fabricTexture('#b8a891', 2, 2), bumpMap: bumpNoise(3, 3), bumpScale: 0.011, roughness: 1 }),
       rug: std({ map: rugTexture(), roughness: 1 }),
       dark: std({ color: 0x1d1f24, roughness: 0.3, metalness: 0.3 }),
       metal: std({ color: 0x8d939a, roughness: 0.3, metalness: 0.85 }),
@@ -297,14 +298,14 @@
       return mesh;
     }
     function cyl(rt, rb, h, m, x, y, z, seg) {
-      var mesh = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg || 24), m);
+      var mesh = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg || 12), m);
       mesh.position.set(x, y, z);
       mesh.castShadow = true; mesh.receiveShadow = true;
       scene.add(mesh);
       return mesh;
     }
     function sph(r, m, x, y, z, detail) {
-      var mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(r, detail === undefined ? 1 : detail), m);
+      var mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(r, detail === undefined ? 0 : detail), m);
       mesh.position.set(x, y, z);
       mesh.castShadow = true; mesh.receiveShadow = true;
       scene.add(mesh);
