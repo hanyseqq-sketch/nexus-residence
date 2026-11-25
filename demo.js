@@ -249,7 +249,6 @@
       return t;
     }
 
-    /* ---------------- materiály ---------------- */
     function std(o) {
       if (o.envMapIntensity === undefined) o.envMapIntensity = HIGH ? 0.35 : 0;
       return new THREE.MeshStandardMaterial(o);
@@ -301,6 +300,31 @@
       scene.add(mesh);
       return mesh;
     }
+
+    /* ---------------- PBR podlaha (Poly Haven, CC0) ---------------- */
+    var floorTexLoader = new THREE.TextureLoader();
+    floorTexLoader.load('textures/floor_diff.jpg', function (t) {
+      t.encoding = THREE.sRGBEncoding;
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(10, 10);
+      t.anisotropy = HIGH ? 4 : 2;
+      M.floor.map = t;
+      M.floor.needsUpdate = true;
+    });
+    floorTexLoader.load('textures/floor_nor.jpg', function (t) {
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(10, 10);
+      M.floor.normalMap = t;
+      M.floor.normalScale = new THREE.Vector2(1.2, 1.2);
+      M.floor.needsUpdate = true;
+    });
+    floorTexLoader.load('textures/floor_rough.jpg', function (t) {
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(10, 10);
+      M.floor.roughnessMap = t;
+      M.floor.roughness = 1.0;
+      M.floor.needsUpdate = true;
+    });
 
     /* ---------------- půdorys (W=5, 10x10 m) ---------------- */
     var W = 5, H = 2.9;
