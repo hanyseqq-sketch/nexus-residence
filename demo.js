@@ -218,50 +218,66 @@
     }
 
     function skyTexture() {
-      return tex(768, 512, function (g, w, h) {
-        var sky = g.createLinearGradient(0, 0, 0, h * 0.62);
-        sky.addColorStop(0, '#1d3f74');
-        sky.addColorStop(0.4, '#5d84bd');
-        sky.addColorStop(0.72, '#d99a7e');
-        sky.addColorStop(1, '#ffc99b');
-        g.fillStyle = sky; g.fillRect(0, 0, w, h * 0.62);
+      return tex(1024, 512, function (g, w, h) {
+        var sky = g.createLinearGradient(0, 0, 0, h * 0.6);
+        sky.addColorStop(0, '#1a3568');
+        sky.addColorStop(0.38, '#4a72b0');
+        sky.addColorStop(0.7, '#d48a6a');
+        sky.addColorStop(1, '#f5b88a');
+        g.fillStyle = sky; g.fillRect(0, 0, w, h * 0.6);
 
-        var glow = g.createRadialGradient(w * 0.66, h * 0.57, 4, w * 0.66, h * 0.57, h * 0.5);
-        glow.addColorStop(0, 'rgba(255,236,205,.95)');
-        glow.addColorStop(1, 'rgba(255,236,205,0)');
-        g.fillStyle = glow; g.fillRect(0, 0, w, h * 0.62);
+        // slunce
+        var sun = g.createRadialGradient(w * 0.72, h * 0.46, 2, w * 0.72, h * 0.46, h * 0.34);
+        sun.addColorStop(0, 'rgba(255,248,220,1)');
+        sun.addColorStop(0.18, 'rgba(255,220,170,.75)');
+        sun.addColorStop(0.5, 'rgba(255,180,130,.25)');
+        sun.addColorStop(1, 'rgba(255,180,130,0)');
+        g.fillStyle = sun; g.fillRect(0, 0, w, h * 0.6);
 
+        // opar
+        var haze = g.createLinearGradient(0, h * 0.42, 0, h * 0.62);
+        haze.addColorStop(0, 'rgba(255,200,160,0)');
+        haze.addColorStop(1, 'rgba(255,190,150,.45)');
+        g.fillStyle = haze; g.fillRect(0, 0, w, h * 0.62);
+
+        // město (silueta)
+        g.fillStyle = 'rgba(14,24,44,.92)';
         var bx = 0;
         while (bx < w) {
-          var bw = rnd(14, 44), bh = rnd(18, 92);
-          g.fillStyle = 'rgba(10,20,38,.94)';
-          g.fillRect(bx, h * 0.62 - bh, bw, bh);
-          g.fillStyle = 'rgba(255,214,150,.55)';
-          for (var wy = h * 0.62 - bh + 6; wy < h * 0.62 - 4; wy += 9) {
-            for (var wx = bx + 4; wx < bx + bw - 4; wx += 7) {
-              if (Math.random() > 0.6) g.fillRect(wx, wy, 2.4, 3.4);
+          var bw = rnd(10, 46), bh = rnd(24, 110);
+          g.fillRect(bx, h * 0.6 - bh, bw, bh);
+          // okna
+          g.fillStyle = 'rgba(255,210,140,.6)';
+          for (var wy = h * 0.6 - bh + 5; wy < h * 0.6 - 3; wy += 8) {
+            for (var wx = bx + 3; wx < bx + bw - 3; wx += 6) {
+              if (Math.random() > 0.55) g.fillRect(wx, wy, 2, 3);
             }
           }
-          bx += bw + rnd(3, 10);
+          g.fillStyle = 'rgba(14,24,44,.92)';
+          bx += bw + rnd(2, 8);
         }
 
-        var sea = g.createLinearGradient(0, h * 0.62, 0, h);
-        sea.addColorStop(0, '#2b4a72');
-        sea.addColorStop(0.5, '#142744');
-        sea.addColorStop(1, '#091324');
-        g.fillStyle = sea; g.fillRect(0, h * 0.62, w, h * 0.38);
-        for (var i = 0; i < 100; i++) {
-          var y = h * 0.63 + Math.random() * h * 0.34;
-          g.fillStyle = 'rgba(255,205,160,' + rnd(0.03, 0.18).toFixed(3) + ')';
-          g.fillRect(rnd(0, w), y, rnd(10, 70), rnd(1, 2.4));
+        // moře
+        var sea = g.createLinearGradient(0, h * 0.6, 0, h);
+        sea.addColorStop(0, '#2f5a8a');
+        sea.addColorStop(0.4, '#1b3a62');
+        sea.addColorStop(1, '#0a1830');
+        g.fillStyle = sea; g.fillRect(0, h * 0.6, w, h * 0.4);
+
+        // odrazy slunce na vodě
+        var refl = g.createRadialGradient(w * 0.72, h * 0.62, 2, w * 0.72, h * 0.62, h * 0.3);
+        refl.addColorStop(0, 'rgba(255,220,170,.7)');
+        refl.addColorStop(0.25, 'rgba(255,200,150,.35)');
+        refl.addColorStop(1, 'rgba(255,200,150,0)');
+        g.fillStyle = refl; g.fillRect(0, h * 0.6, w, h * 0.4);
+
+        // vlnky
+        for (var i = 0; i < 140; i++) {
+          var y = h * 0.62 + Math.random() * h * 0.36;
+          g.fillStyle = 'rgba(255,215,170,' + rnd(0.04, 0.2).toFixed(3) + ')';
+          g.fillRect(rnd(0, w), y, rnd(12, 80), rnd(1, 2.2));
         }
       }, 1, 1);
-    }
-
-    /* ---------------- materiály ---------------- */
-    function std(o) {
-      if (o.envMapIntensity === undefined) o.envMapIntensity = HIGH ? 0.35 : 0;
-      return new THREE.MeshStandardMaterial(o);
     }
     var M = {
       floor: std({ map: woodTexture(4, 4), bumpMap: HIGH ? bumpWood(4, 4) : null, bumpScale: HIGH ? 0.003 : 0, roughness: 0.66, metalness: 0 }),
@@ -328,19 +344,36 @@
     box(W * 2, 0.1, 0.06, M.white, 0, 0.05, -W + 0.13, { cast: false });
     box(0.06, 0.1, W * 2, M.white, -W + 0.13, 0.05, 0, { cast: false });
 
-    /* ---------------- okno s výhledem ---------------- */
-    var view = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.6, 2.3),
-      new THREE.MeshBasicMaterial({ map: skyTexture() })
-    );
-    view.position.set(-1.05, 1.45, -W + 0.11);
-    scene.add(view);
+    /* ---------------- okno s výhledem (parallax pozadí) ---------------- */
+    var backdropTex = skyTexture();
+    var backdropMat = new THREE.MeshBasicMaterial({ map: backdropTex, fog: false });
+    var backdrop = new THREE.Mesh(new THREE.PlaneGeometry(16, 8), backdropMat);
+    backdrop.position.set(-1.05, 1.45, -8.0);
+    scene.add(backdrop);
 
+    // načtení fotky pohledu (pokud existuje)
+    var texLoader = new THREE.TextureLoader();
+    texLoader.load('img/window.jpg', function (t) {
+      t.encoding = THREE.sRGBEncoding;
+      backdropMat.map = t;
+      backdropMat.needsUpdate = true;
+    }, undefined, function () {
+      texLoader.load('img/window.png', function (t) {
+        t.encoding = THREE.sRGBEncoding;
+        backdropMat.map = t;
+        backdropMat.needsUpdate = true;
+      }, undefined, function () {});
+    });
+
+    // rám okna (u stěny)
     box(2.9, 0.1, 0.16, M.dark, -1.05, 0.27, -W + 0.14);
     box(2.9, 0.1, 0.16, M.dark, -1.05, 2.63, -W + 0.14);
     box(0.1, 2.46, 0.16, M.dark, -2.5, 1.45, -W + 0.14);
     box(0.1, 2.46, 0.16, M.dark, 0.4, 1.45, -W + 0.14);
     box(0.055, 2.4, 0.12, M.dark, -1.05, 1.45, -W + 0.14);
+
+    // sklo (jemný odlesk)
+    box(2.55, 2.3, 0.02, M.glass, -1.05, 1.45, -W + 0.17, { cast: false, recv: false });
 
     box(0.3, 2.55, 0.12, M.fabric, -2.62, 1.4, -W + 0.32);
     box(0.3, 2.55, 0.12, M.fabric, 0.52, 1.4, -W + 0.32);
