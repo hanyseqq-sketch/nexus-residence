@@ -12,10 +12,12 @@
   if (typeof THREE === 'undefined') { fail('Three.js se nenačetl (chybí three.min.js vedle index.html).'); return; }
 
   try {
+    var HIGH = (new URLSearchParams(window.location.search).get('q') === 'high');
+
     /* ---------------- základ ---------------- */
     var canvas = document.getElementById('c');
     var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, HIGH ? 1.5 : 1.0));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
@@ -27,7 +29,7 @@
     var camera = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
 
     /* ---------------- HDRI prostředí (Poly Haven, CC0) ---------------- */
-    if (THREE.RGBELoader && THREE.PMREMGenerator) {
+    if (HIGH && THREE.RGBELoader && THREE.PMREMGenerator) {
       try {
         var pmrem = new THREE.PMREMGenerator(renderer);
         pmrem.compileEquirectangularShader();
@@ -46,7 +48,7 @@
     var key = new THREE.DirectionalLight(0xfff0d6, 1.85);
     key.position.set(9, 15, 11);
     key.castShadow = true;
-    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.mapSize.set(HIGH ? 1024 : 512, HIGH ? 1024 : 512);
     key.shadow.camera.left = -13; key.shadow.camera.right = 13;
     key.shadow.camera.top = 13; key.shadow.camera.bottom = -13;
     key.shadow.camera.near = 1; key.shadow.camera.far = 60;
@@ -74,7 +76,7 @@
       var t = new THREE.CanvasTexture(cv);
       t.wrapS = t.wrapT = THREE.RepeatWrapping;
       t.repeat.set(rx || 1, ry || 1);
-      t.anisotropy = 2;
+      t.anisotropy = HIGH ? 2 : 1;
       t.encoding = THREE.sRGBEncoding;
       return t;
     }
@@ -258,20 +260,20 @@
 
     /* ---------------- materiály ---------------- */
     function std(o) {
-      if (o.envMapIntensity === undefined) o.envMapIntensity = 0.35;
+      if (o.envMapIntensity === undefined) o.envMapIntensity = HIGH ? 0.35 : 0;
       return new THREE.MeshStandardMaterial(o);
     }
     var M = {
-      floor: std({ map: woodTexture(4, 4), bumpMap: bumpWood(4, 4), bumpScale: 0.003, roughness: 0.66, metalness: 0 }),
-      wood: std({ map: woodTexture(1, 1), bumpMap: bumpWood(1, 1), bumpScale: 0.003, roughness: 0.6 }),
+      floor: std({ map: woodTexture(4, 4), bumpMap: HIGH ? bumpWood(4, 4) : null, bumpScale: HIGH ? 0.003 : 0, roughness: 0.66, metalness: 0 }),
+      wood: std({ map: woodTexture(1, 1), bumpMap: HIGH ? bumpWood(1, 1) : null, bumpScale: HIGH ? 0.003 : 0, roughness: 0.6 }),
       woodDark: std({ color: 0x4d3524, roughness: 0.55 }),
       wall: std({ color: 0xe1d8c8, roughness: 0.97 }),
       wall2: std({ color: 0xd7cdbb, roughness: 0.97 }),
       cream: std({ color: 0xe3d7c4, roughness: 0.85 }),
       white: std({ color: 0xf3eee4, roughness: 0.5 }),
-      marble: std({ map: marbleTexture(2, 2), bumpMap: bumpMarble(2, 2), bumpScale: 0.004, roughness: 0.32, metalness: 0.05 }),
-      fabric: std({ map: fabricTexture('#d6c7b1', 2, 2), bumpMap: bumpNoise(3, 3), bumpScale: 0.011, roughness: 1 }),
-      fabric2: std({ map: fabricTexture('#b8a891', 2, 2), bumpMap: bumpNoise(3, 3), bumpScale: 0.011, roughness: 1 }),
+      marble: std({ map: marbleTexture(2, 2), bumpMap: HIGH ? bumpMarble(2, 2) : null, bumpScale: HIGH ? 0.004 : 0, roughness: 0.32, metalness: 0.05 }),
+      fabric: std({ map: fabricTexture('#d6c7b1', 2, 2), bumpMap: HIGH ? bumpNoise(3, 3) : null, bumpScale: HIGH ? 0.011 : 0, roughness: 1 }),
+      fabric2: std({ map: fabricTexture('#b8a891', 2, 2), bumpMap: HIGH ? bumpNoise(3, 3) : null, bumpScale: HIGH ? 0.011 : 0, roughness: 1 }),
       rug: std({ map: rugTexture(), roughness: 1 }),
       dark: std({ color: 0x1d1f24, roughness: 0.3, metalness: 0.3 }),
       metal: std({ color: 0x8d939a, roughness: 0.3, metalness: 0.85 }),
@@ -557,6 +559,15 @@
 
     var panel = document.getElementById('panel');
     var hint = document.getElementById('hint');
+    var qbtn = document.getElementById('qbtn');
+    if (qbtn) {
+      qbtn.textContent = HIGH ? 'Plynule' : 'Vysoká kvalita';
+      qbtn.addEventListener('click', function () {
+        var u = new URL(window.location.href);
+        if (HIGH) u.searchParams.delete('q'); else u.searchParams.set('q', 'high');
+        window.location.href = u.toString();
+      });
+    }
 
     function setCam(theta, phi, r, t) {
       var sp = Math.sin(phi), cp = Math.cos(phi);
