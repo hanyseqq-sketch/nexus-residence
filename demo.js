@@ -28,6 +28,17 @@
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
 
+    /* ---------------- post-processing (bloom) ---------------- */
+    var composer = null;
+    function setupComposer() {
+      if (!THREE.EffectComposer || !THREE.RenderPass || !THREE.UnrealBloomPass) return;
+      composer = new THREE.EffectComposer(renderer);
+      composer.addPass(new THREE.RenderPass(scene, camera));
+      var bloom = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), HIGH ? 0.55 : 0.35, 0.4, 0.82);
+      composer.addPass(bloom);
+    }
+    setupComposer();
+
     /* ---------------- HDRI prostředí ---------------- */
     if (HIGH && THREE.RGBELoader && THREE.PMREMGenerator) {
       try {
@@ -695,6 +706,7 @@
       camera.aspect = w / h;
       camera.fov = camera.aspect < 1 ? 44 : 38;
       camera.updateProjectionMatrix();
+      if (composer) composer.setSize(w, h);
       var af = camera.aspect < 1 ? Math.pow(1 / camera.aspect, 0.55) : Math.pow(1 / camera.aspect, 0.35);
       for (var k in VIEWS) {
         if (k === 'plan') continue;
@@ -751,7 +763,7 @@
         h.el.style.left = ((tmp.x * 0.5 + 0.5) * window.innerWidth) + 'px';
         h.el.style.top = ((-tmp.y * 0.5 + 0.5) * window.innerHeight) + 'px';
       });
-      renderer.render(scene, camera);
+      if (composer) composer.render(); else renderer.render(scene, camera);
       frames++;
       if (frames === 2) ready();
       requestAnimationFrame(tick);
