@@ -1,7 +1,7 @@
 # Nexus Residence — 3D prezentace nemovitosti
 
-Interaktivní 3D web ve stylu „Websites in 2027“: isometrický půdorys, plynulé přelety
-kamery a klikací hotspoty. Čisté Three.js, žádný build, žádné závislosti na serveru.
+Interaktivní 3D web ve stylu „Websites in 2027“: 4-pokojový byt (4+kk, ~110 m²) ve stylu Airbnb
+s pracovním koutkem, pračkou, espresssem a smart TV. Čisté Three.js, žádný build, žádné závislosti na serveru.
 
 ## Ovládání
 
