@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#070b16">
+<title>Nexus Residence — 30. patro</title>
+<style>
+  :root {
+    --ink:#f5f1e9;
+    --muted:rgba(245,241,233,.56);
+    --line:rgba(245,241,233,.16);
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; overflow:hidden; background:#070b16; }
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color:var(--ink);
+    background: radial-gradient(120% 85% at 50% 0%, #1b3563 0%, #0e1c38 42%, #060a13 100%);
+  }
+  #c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+  .grain {
+    position:fixed; inset:0; pointer-events:none; opacity:.055; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>");
+  }
+  .vig {
+    position:fixed; inset:0; pointer-events:none;
+    background: radial-gradient(115% 80% at 50% 45%, transparent 55%, rgba(3,6,12,.72) 100%);
+  }
+
+  header {
+    position:fixed; top:0; left:0; right:0; display:flex; align-items:flex-start;
+    justify-content:space-between; padding:calc(16px + env(safe-area-inset-top)) 20px 0;
+    pointer-events:none; font-size:11.5px; letter-spacing:.24em; text-transform:uppercase;
+  }
+  .brand { font-weight:600; opacity:.94; line-height:1.5; }
+  .brand small { display:block; font-weight:400; font-size:9.5px; letter-spacing:.3em; opacity:.45; }
+  .tag {
+    border:1px solid var(--line); border-radius:999px; padding:6px 13px;
+    font-size:9.5px; letter-spacing:.2em; color:var(--muted);
+  }
+
+  #labels { position:fixed; inset:0; pointer-events:none; }
+  .hs {
+    position:absolute; transform:translate(-50%,-50%); pointer-events:auto;
+    display:flex; align-items:center; gap:8px; cursor:pointer;
+    background:rgba(9,14,26,.55); border:1px solid rgba(255,255,255,.2);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+    border-radius:999px; padding:7px 13px 7px 9px;
+    font-size:11px; letter-spacing:.07em; white-space:nowrap;
+    transition:opacity .3s, background .2s;
+  }
+  .hs:active { background:rgba(9,14,26,.8); }
+  .hs i {
+    width:6px; height:6px; border-radius:50%; background:#9fd6ff;
+    box-shadow:0 0 0 4px rgba(159,214,255,.16);
+  }
+
+  #panel {
+    position:fixed; left:18px; right:18px; bottom:96px; pointer-events:none;
+    opacity:0; transform:translateY(8px); transition:opacity .5s, transform .5s;
+  }
+  #panel.on { opacity:1; transform:none; }
+  #panel h2 {
+    margin:0 0 4px; font-size:19px; font-weight:500; letter-spacing:.02em;
+  }
+  #panel p { margin:0; font-size:11.5px; line-height:1.55; color:var(--muted); letter-spacing:.04em; }
+
+  nav {
+    position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom));
+    transform:translateX(-50%); display:flex; gap:2px; padding:5px; border-radius:999px;
+    background:rgba(8,12,22,.6); border:1px solid var(--line);
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  }
+  nav button {
+    appearance:none; border:0; background:transparent; color:var(--muted);
+    font:inherit; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+    padding:10px 12px; border-radius:999px; cursor:pointer; transition:.22s;
+  }
+  nav button.on { background:rgba(245,241,233,.94); color:#0a1020; }
+
+  .hint {
+    position:fixed; left:0; right:0; bottom:calc(74px + env(safe-area-inset-bottom));
+    text-align:center; font-size:9.5px; letter-spacing:.2em; text-transform:uppercase;
+    color:rgba(245,241,233,.28); pointer-events:none; transition:opacity .6s;
+  }
+
+  #loader {
+    position:fixed; inset:0; z-index:20; display:grid; place-items:center;
+    background:#070b16; transition:opacity .8s ease;
+  }
+  #loader.done { opacity:0; pointer-events:none; }
+  .ld { text-align:center; width:min(78vw,320px); }
+  .ld .k { font-size:10px; letter-spacing:.42em; text-transform:uppercase; color:var(--muted); }
+  .ld .t { font-size:26px; font-weight:500; letter-spacing:.06em; margin:10px 0 26px; }
+  .bar { height:1px; background:rgba(245,241,233,.16); overflow:hidden; }
+  .bar span { display:block; height:100%; width:0%; background:var(--ink); transition:width .35s ease; }
+  .ld .p { margin-top:12px; font-size:9.5px; letter-spacing:.3em; color:rgba(245,241,233,.34); text-transform:uppercase; }
+
+  #err {
+    position:fixed; inset:0; z-index:30; display:none; place-items:center; text-align:center;
+    padding:34px; font-size:13.5px; line-height:1.7; color:#ffe2c9; background:#070b16;
+  }
+  #err b { color:#fff; }
+  @media (min-width:900px) {
+    #panel { left:48px; right:auto; max-width:320px; bottom:110px; }
+    #panel h2 { font-size:24px; }
+    nav { bottom:34px; }
+    .hint { bottom:92px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="grain"></div>
+<div class="vig"></div>
+
+<header>
+  <div class="brand">Nexus <small>Residence · Miami</small></div>
+  <div class="tag">30. patro</div>
+</header>
+
+<div id="labels"></div>
+
+<div id="panel">
+  <h2></h2>
+  <p></p>
+</div>
+
+<div class="hint" id="hint">Táhni pro otočení · ťukni na bod</div>
+
+<nav>
+  <button data-view="plan" class="on">Půdorys</button>
+  <button data-view="living">Obývák</button>
+  <button data-view="bed">Ložnice</button>
+  <button data-view="bath">Koupelna</button>
+</nav>
+
+<div id="loader">
+  <div class="ld">
+    <div class="k">Prezentace nemovitosti</div>
+    <div class="t">Nexus Residence</div>
+    <div class="bar"><span id="prog"></span></div>
+    <div class="p" id="pct">Načítám 3D scénu</div>
+  </div>
+</div>
+
+<div id="err"></div>
+
+<script src="three.min.js"></script>
+<script src="demo.js"></script>
+</body>
+</html>
