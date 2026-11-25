@@ -20,7 +20,7 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.92;
+    renderer.toneMappingExposure = 0.85;
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
