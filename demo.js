@@ -493,6 +493,19 @@
     cyl(0.03, 0.03, 0.09, M.glass, -1.65, 0.47, 1.1);
     box(0.2, 0.03, 0.14, std({ color: 0x2f3540, roughness: 0.9 }), -1.8, 0.44, 1.3, { ry: -0.2 });
 
+    /* ---------------- CC0 model z Poly Haven (Shelf_01) ---------------- */
+    if (THREE.GLTFLoader) {
+      var gltfLoader = new THREE.GLTFLoader();
+      gltfLoader.load('models/shelf/Shelf_01_1k.gltf', function (gltf) {
+        var shelf = gltf.scene;
+        shelf.scale.set(0.001, 0.001, 0.001);
+        shelf.position.set(3.9, 0, 4.0);
+        shelf.rotation.y = -Math.PI / 2;
+        shelf.traverse(function (c) { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+        scene.add(shelf);
+      }, undefined, function (e) { /* tichy fallback na boxy */ });
+    }
+
     /* ---------------- detaily a kontaktní stíny ---------------- */
     var aoTex = aoTexture();
     function aoBlob(w, d, x, z, y, op) {
